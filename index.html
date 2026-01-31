@@ -52,15 +52,14 @@
   </div>
 
   <script>
-    // ========= إعداد المسار لملف البيانات =========
-    // إذا ملفك اسمه "data.csv" غيّر السطر التالي إلى: const CSV_PATH = './data.csv';
-    const CSV_PATH = './data';
+    // ===== مسار ملف البيانات (مطابق لحروف اسم الملف) =====
+    const CSV_PATH = './data.CSV';   // <-- لا تغيّره إذا الملف اسمه data.CSV
 
-    // ========= إعدادات =========
+    // ===== إعدادات =====
     const POSSIBLE_NAME_HEADERS = ['name','Name','الاسم']; // أسماء محتملة لعمود الاسم
-    const MAX_RENDER = 5000; // حد أقصى للعرض (تحسين الأداء إذا عندك آلاف الصفوف)
+    const MAX_RENDER = 5000; // حد أقصى للعرض (تحسين الأداء)
 
-    // ========= أدوات عربية =========
+    // ===== أدوات عربية =====
     function normalizeArabic(str){ if(!str) return ''; return str.toLowerCase().normalize('NFKD')
       .replace(/[\u064B-\u0652]/g,'') // إزالة التشكيل
       .replace(/ـ/g,'')               // إزالة التطويل
@@ -70,7 +69,7 @@
     function tokenize(q){ return normalizeArabic(q).split(' ').filter(Boolean); }
     function containsAllTokens(haystack, tokens){ const h = normalizeArabic(haystack||''); return tokens.every(t=>h.includes(t)); }
 
-    // ========= CSV Parser (يدعم الحقول المقتبسة) =========
+    // ===== CSV Parser (يدعم الحقول المقتبسة والفواصل داخلها) =====
     function parseCSV(text){
       const rows=[]; let row=[]; let field=''; let inQ=false;
       for(let i=0;i<text.length;i++){
@@ -91,11 +90,11 @@
       return rows;
     }
 
-    // ========= حالة عامة =========
+    // ===== حالة عامة =====
     let HEADERS=[], ROWS=[], nameIdx=-1;
     let sortState = { col: 0, dir: 'asc' };
 
-    // ========= DOM =========
+    // ===== DOM =====
     const thead = document.getElementById('thead');
     const tbody = document.getElementById('tbody');
     const alerts = document.getElementById('alerts');
@@ -176,9 +175,9 @@
 
     async function loadCSV(){
       try{
-        feedback.textContent = 'جاري التحميل من الملف data…';
+        feedback.textContent = 'جاري التحميل من data.CSV…';
         const res = await fetch(CSV_PATH, { cache:'no-store' });
-        if(!res.ok) throw new Error('تعذر تحميل الملف "data". إذا كان اسم الملف data.csv عدِّل CSV_PATH إلى "./data.csv".');
+        if(!res.ok) throw new Error('تعذر تحميل الملف "data.CSV". تأكد أنه في نفس الفولدر مع index.html وبنفس حروف الاسم.');
         const text = await res.text();
         const rows = parseCSV(text);
         if(!rows.length) throw new Error('الملف فارغ.');
@@ -186,8 +185,8 @@
         ROWS = rows.slice(1);
         nameIdx = detectNameIndex(HEADERS);
         if(nameIdx===-1){
-          nameIdx = 0; // fallback: نعتبر أول عمود هو الاسم
-          setError('ملاحظة: لم أجد عمود باسم name/Name/الاسم—اعتبرت العمود الأول عمود الاسم.');
+          nameIdx = 0; // fallback: أول عمود
+          setError('ملاحظة: لم أجد عمود باسم name/Name/الاسم — اعتبرت العمود الأول هو عمود الاسم.');
         } else {
           clearAlerts();
         }
